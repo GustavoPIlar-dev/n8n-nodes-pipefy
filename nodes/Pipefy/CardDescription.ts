@@ -1,0 +1,281 @@
+import type { INodeProperties } from 'n8n-workflow';
+
+export const cardOperations: INodeProperties[] = [
+	{
+		displayName: 'Operation',
+		name: 'operation',
+		type: 'options',
+		noDataExpression: true,
+		displayOptions: {
+			show: {
+				resource: ['card'],
+			},
+		},
+		options: [
+			{
+				name: 'Create',
+				value: 'create',
+				action: 'Create a card',
+			},
+			{
+				name: 'Delete',
+				value: 'delete',
+				action: 'Delete a card',
+			},
+			{
+				name: 'Get All',
+				value: 'getAll',
+				action: 'Get all cards',
+			},
+			{
+				name: 'Move',
+				value: 'move',
+				action: 'Move a card',
+			},
+			{
+				name: 'Search',
+				value: 'search',
+				action: 'Search a card',
+			},
+			{
+				name: 'Update',
+				value: 'update',
+				action: 'Update a card',
+			},
+		],
+		default: 'create',
+	},
+];
+
+export const cardFields: INodeProperties[] = [
+	/* card:create */
+	{
+		displayName: 'Pipe ID',
+		name: 'pipeId',
+		type: 'string',
+		required: true,
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['card'],
+				operation: ['create'],
+			},
+		},
+	},
+	{
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['card'],
+				operation: ['create'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Title',
+				name: 'title',
+				type: 'string',
+				default: '',
+			},
+			{
+				displayName: 'Due Date',
+				name: 'dueDate',
+				type: 'dateTime',
+				default: '',
+			},
+			{
+				displayName: 'Fields Attributes',
+				name: 'fieldsAttributes',
+				type: 'fixedCollection',
+				typeOptions: {
+					multipleValues: true,
+				},
+				placeholder: 'Add Attribute',
+				default: {},
+				options: [
+					{
+						name: 'attributes',
+						displayName: 'Attributes',
+						values: [
+							{
+								displayName: 'Field ID',
+								name: 'fieldId',
+								type: 'string',
+								required: true,
+								default: '',
+							},
+							{
+								displayName: 'Field Value',
+								name: 'fieldValue',
+								type: 'string',
+								required: true,
+								default: '',
+							},
+						],
+					},
+				],
+			},
+		],
+	},
+	/* card:delete, update, move */
+	{
+		displayName: 'Card ID',
+		name: 'cardId',
+		type: 'string',
+		required: true,
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['card'],
+				operation: ['delete', 'update', 'move'],
+			},
+		},
+	},
+	/* card:getAll */
+	{
+		displayName: 'Pipe ID',
+		name: 'pipeId',
+		type: 'string',
+		required: true,
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['card'],
+				operation: ['getAll'],
+			},
+		},
+	},
+	{
+		displayName: 'Return All',
+		name: 'returnAll',
+		type: 'boolean',
+		displayOptions: {
+			show: {
+				resource: ['card'],
+				operation: ['getAll'],
+			},
+		},
+		default: false,
+	},
+	{
+		displayName: 'Limit',
+		name: 'limit',
+		type: 'number',
+		displayOptions: {
+			show: {
+				resource: ['card'],
+				operation: ['getAll'],
+				returnAll: [false],
+			},
+		},
+		typeOptions: {
+			minValue: 1,
+		},
+		default: 50,
+	},
+	/* card:move */
+	{
+		displayName: 'Destination Phase ID',
+		name: 'destinationPhaseId',
+		type: 'string',
+		required: true,
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['card'],
+				operation: ['move'],
+			},
+		},
+	},
+	/* card:search */
+	{
+		displayName: 'Title',
+		name: 'title',
+		type: 'string',
+		required: true,
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['card'],
+				operation: ['search'],
+			},
+		},
+	},
+	{
+		displayName: 'Pipe ID',
+		name: 'pipeId',
+		type: 'string',
+		required: true,
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['card'],
+				operation: ['search'],
+			},
+		},
+	},
+	/* card:update */
+	{
+		displayName: 'Update Fields',
+		name: 'updateFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
+		displayOptions: {
+			show: {
+				resource: ['card'],
+				operation: ['update'],
+			},
+		},
+		options: [
+			{
+				displayName: 'Title',
+				name: 'title',
+				type: 'string',
+				default: '',
+			},
+			{
+				displayName: 'Due Date',
+				name: 'dueDate',
+				type: 'dateTime',
+				default: '',
+			},
+			{
+				displayName: 'Fields Attributes',
+				name: 'fieldsAttributes',
+				type: 'fixedCollection',
+				typeOptions: {
+					multipleValues: true,
+				},
+				placeholder: 'Add Attribute',
+				default: {},
+				options: [
+					{
+						name: 'attributes',
+						displayName: 'Attributes',
+						values: [
+							{
+								displayName: 'Field ID',
+								name: 'fieldId',
+								type: 'string',
+								required: true,
+								default: '',
+							},
+							{
+								displayName: 'Field Value',
+								name: 'fieldValue',
+								type: 'string',
+								required: true,
+								default: '',
+							},
+						],
+					},
+				],
+			},
+		],
+	},
+];
