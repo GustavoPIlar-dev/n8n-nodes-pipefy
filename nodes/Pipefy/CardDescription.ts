@@ -20,7 +20,14 @@ export const cardOperations: INodeProperties[] = [
 			{
 				name: 'Delete',
 				value: 'delete',
+				description: 'Delete a card',
 				action: 'Delete a card',
+			},
+			{
+				name: 'Get',
+				value: 'get',
+				description: 'Get a card',
+				action: 'Get a card',
 			},
 			{
 				name: 'Get All',
@@ -88,6 +95,17 @@ export const cardFields: INodeProperties[] = [
 				default: '',
 			},
 			{
+				displayName: 'Phase ID Name or ID',
+				name: 'phaseId',
+				type: 'options',
+				typeOptions: {
+					loadOptionsMethod: 'getPhases',
+					loadOptionsDependsOn: ['pipeId'],
+				},
+				default: '',
+				description: 'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code-examples/expressions/">expression</a>',
+			},
+			{
 				displayName: 'Fields Attributes',
 				name: 'fieldsAttributes',
 				type: 'fixedCollection',
@@ -102,11 +120,16 @@ export const cardFields: INodeProperties[] = [
 						displayName: 'Attributes',
 						values: [
 							{
-								displayName: 'Field ID',
+								displayName: 'Field ID Name or ID',
 								name: 'fieldId',
-								type: 'string',
+								type: 'options',
+								typeOptions: {
+									loadOptionsMethod: 'getPipeFields',
+									loadOptionsDependsOn: ['pipeId'],
+								},
 								required: true,
 								default: '',
+								description: 'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code-examples/expressions/">expression</a>',
 							},
 							{
 								displayName: 'Field Value',
@@ -121,7 +144,7 @@ export const cardFields: INodeProperties[] = [
 			},
 		],
 	},
-	/* card:delete, update, move */
+	/* card:delete, get, move, update */
 	{
 		displayName: 'Card ID',
 		name: 'cardId',
@@ -131,7 +154,7 @@ export const cardFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['card'],
-				operation: ['delete', 'update', 'move'],
+				operation: ['delete', 'get', 'move', 'update'],
 			},
 		},
 	},
@@ -179,9 +202,13 @@ export const cardFields: INodeProperties[] = [
 	},
 	/* card:move */
 	{
-		displayName: 'Destination Phase ID',
+		displayName: 'Destination Phase ID Name or ID',
 		name: 'destinationPhaseId',
-		type: 'string',
+		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'getPhases',
+			loadOptionsDependsOn: ['cardId'],
+		},
 		required: true,
 		default: '',
 		displayOptions: {
@@ -190,21 +217,9 @@ export const cardFields: INodeProperties[] = [
 				operation: ['move'],
 			},
 		},
+		description: 'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code-examples/expressions/">expression</a>',
 	},
 	/* card:search */
-	{
-		displayName: 'Title',
-		name: 'title',
-		type: 'string',
-		required: true,
-		default: '',
-		displayOptions: {
-			show: {
-				resource: ['card'],
-				operation: ['search'],
-			},
-		},
-	},
 	{
 		displayName: 'Pipe ID',
 		name: 'pipeId',
@@ -215,6 +230,75 @@ export const cardFields: INodeProperties[] = [
 			show: {
 				resource: ['card'],
 				operation: ['search'],
+			},
+		},
+	},
+	{
+		displayName: 'Search By',
+		name: 'searchBy',
+		type: 'options',
+		options: [
+			{
+				name: 'Title',
+				value: 'title',
+			},
+			{
+				name: 'Custom Field',
+				value: 'customField',
+			},
+		],
+		default: 'title',
+		displayOptions: {
+			show: {
+				resource: ['card'],
+				operation: ['search'],
+			},
+		},
+	},
+	{
+		displayName: 'Title',
+		name: 'title',
+		type: 'string',
+		required: true,
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['card'],
+				operation: ['search'],
+				searchBy: ['title'],
+			},
+		},
+	},
+	{
+		displayName: 'Field ID Name or ID',
+		name: 'fieldId',
+		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'getPipeFields',
+			loadOptionsDependsOn: ['pipeId'],
+		},
+		required: true,
+		default: '',
+		description: 'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code-examples/expressions/">expression</a>',
+		displayOptions: {
+			show: {
+				resource: ['card'],
+				operation: ['search'],
+				searchBy: ['customField'],
+			},
+		},
+	},
+	{
+		displayName: 'Field Value',
+		name: 'fieldValue',
+		type: 'string',
+		required: true,
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['card'],
+				operation: ['search'],
+				searchBy: ['customField'],
 			},
 		},
 	},
@@ -259,11 +343,16 @@ export const cardFields: INodeProperties[] = [
 						displayName: 'Attributes',
 						values: [
 							{
-								displayName: 'Field ID',
+								displayName: 'Field ID Name or ID',
 								name: 'fieldId',
-								type: 'string',
+								type: 'options',
+								typeOptions: {
+									loadOptionsMethod: 'getPipeFields',
+									loadOptionsDependsOn: ['cardId'],
+								},
 								required: true,
 								default: '',
+								description: 'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code-examples/expressions/">expression</a>',
 							},
 							{
 								displayName: 'Field Value',

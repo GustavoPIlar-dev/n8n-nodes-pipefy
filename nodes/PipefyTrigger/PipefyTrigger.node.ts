@@ -1,4 +1,4 @@
-import type { IHookFunctions, INodeType, INodeTypeDescription } from 'n8n-workflow';
+import type { IHookFunctions, INodeType, INodeTypeDescription, IWebhookFunctions, IWebhookResponseData, IDataObject } from 'n8n-workflow';
 import { pipefyApiRequest } from '../Pipefy/GenericFunctions';
 
 export class PipefyTrigger implements INodeType {
@@ -60,12 +60,48 @@ export class PipefyTrigger implements INodeType {
 				default: 'personalToken',
 			},
 			{
+				displayName: 'Resource',
+				name: 'resource',
+				type: 'options',
+				noDataExpression: true,
+				options: [
+					{
+						name: 'Pipe (Cards)',
+						value: 'pipe',
+					},
+					{
+						name: 'Table (Table Records)',
+						value: 'table',
+					},
+				],
+				default: 'pipe',
+				required: true,
+			},
+			{
 				displayName: 'Pipe ID',
 				name: 'pipeId',
 				type: 'string',
 				required: true,
 				default: '',
 				description: 'The ID of the Pipe to monitor events on',
+				displayOptions: {
+					show: {
+						resource: ['pipe'],
+					},
+				},
+			},
+			{
+				displayName: 'Table ID',
+				name: 'tableId',
+				type: 'string',
+				required: true,
+				default: '',
+				description: 'The ID of the Table to monitor events on',
+				displayOptions: {
+					show: {
+						resource: ['table'],
+					},
+				},
 			},
 			{
 				displayName: 'Event',
@@ -73,19 +109,19 @@ export class PipefyTrigger implements INodeType {
 				type: 'options',
 				options: [
 					{
-						name: 'Card Created',
+						name: 'Item Created',
 						value: 'card.create',
 					},
 					{
-						name: 'Card Moved',
+						name: 'Item Moved',
 						value: 'card.move',
 					},
 					{
-						name: 'Card Updated',
+						name: 'Item Updated',
 						value: 'card.update',
 					},
 					{
-						name: 'Card Deleted',
+						name: 'Item Deleted',
 						value: 'card.delete',
 					},
 				],
@@ -107,15 +143,23 @@ export class PipefyTrigger implements INodeType {
 			async create(this: IHookFunctions): Promise<boolean> {
 				const webhookUrl = this.getNodeWebhookUrl('default');
 				const event = this.getNodeParameter('event') as string;
-				const pipeId = this.getNodeParameter('pipeId') as string;
+				const resource = this.getNodeParameter('resource') as string;
 
-				const query = `mutation($input: WebhookInput!) { createWebhook(input: $input) { webhook { id } } }`;
-				const input = {
+				const query = `mutation n8nCreateWebhook($input: CreateWebhookInput!) { createWebhook(input: $input) { webhook { id } } }`;
+				
+				const input: any = {
 					actions: [event],
 					name: 'n8n Integration Webhook',
-					pipe_id: parseInt(pipeId, 10),
 					url: webhookUrl,
 				};
+
+				if (resource === 'pipe') {
+					const pipeId = this.getNodeParameter('pipeId') as string;
+					input.pipe_id = parseInt(pipeId, 10);
+				} else if (resource === 'table') {
+					const tableId = this.getNodeParameter('tableId') as string;
+					input.table_id = parseInt(tableId, 10);
+				}
 
 				const responseData = await pipefyApiRequest.call(this, query, { input });
 
@@ -131,7 +175,7 @@ export class PipefyTrigger implements INodeType {
 			async delete(this: IHookFunctions): Promise<boolean> {
 				const webhookData = this.getWorkflowStaticData('node');
 				if (webhookData.webhookId !== undefined) {
-					const query = `mutation($input: DeleteWebhookInput!) { deleteWebhook(input: $input) { success } }`;
+					const query = `mutation n8nDeleteWebhook($input: DeleteWebhookInput!) { deleteWebhook(input: $input) { success } }`;
 					try {
 						await pipefyApiRequest.call(this, query, { input: { id: webhookData.webhookId } });
 					} catch (error) {
@@ -143,4 +187,13 @@ export class PipefyTrigger implements INodeType {
 			},
 		},
 	};
+
+	async webhook(this: IWebhookFunctions): Promise<IWebhookResponseData> {
+		const req = this.getRequestObject();
+		return {
+			workflowData: [
+				this.helpers.returnJsonArray(req.body as IDataObject),
+			],
+		};
+	}
 }

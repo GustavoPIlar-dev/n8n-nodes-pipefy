@@ -23,6 +23,11 @@ export const tableRecordOperations: INodeProperties[] = [
 				action: 'Delete a table record',
 			},
 			{
+				name: 'Get',
+				value: 'get',
+				action: 'Get a table record',
+			},
+			{
 				name: 'Get All',
 				value: 'getAll',
 				action: 'Get all table records',
@@ -58,57 +63,64 @@ export const tableRecordFields: INodeProperties[] = [
 		},
 	},
 	{
-		displayName: 'Title',
-		name: 'title',
-		type: 'string',
-		required: true,
-		default: '',
+		displayName: 'Additional Fields',
+		name: 'additionalFields',
+		type: 'collection',
+		placeholder: 'Add Field',
+		default: {},
 		displayOptions: {
 			show: {
 				resource: ['tableRecord'],
 				operation: ['create'],
 			},
 		},
-	},
-	{
-		displayName: 'Fields Attributes',
-		name: 'fieldsAttributes',
-		type: 'fixedCollection',
-		typeOptions: {
-			multipleValues: true,
-		},
-		placeholder: 'Add Attribute',
-		default: {},
-		displayOptions: {
-			show: {
-				resource: ['tableRecord'],
-				operation: ['create', 'update'],
-			},
-		},
 		options: [
 			{
-				name: 'attributes',
-				displayName: 'Attributes',
-				values: [
+				displayName: 'Title',
+				name: 'title',
+				type: 'string',
+				default: '',
+			},
+			{
+				displayName: 'Fields Attributes',
+				name: 'fieldsAttributes',
+				type: 'fixedCollection',
+				typeOptions: {
+					multipleValues: true,
+				},
+				placeholder: 'Add Attribute',
+				default: {},
+				options: [
 					{
-						displayName: 'Field ID',
-						name: 'fieldId',
-						type: 'string',
-						required: true,
-						default: '',
-					},
-					{
-						displayName: 'Field Value',
-						name: 'fieldValue',
-						type: 'string',
-						required: true,
-						default: '',
+						name: 'attributes',
+						displayName: 'Attributes',
+						values: [
+							{
+								displayName: 'Field ID Name or ID',
+								name: 'fieldId',
+								type: 'options',
+								typeOptions: {
+									loadOptionsMethod: 'getTableFields',
+									loadOptionsDependsOn: ['tableId'],
+								},
+								required: true,
+								default: '',
+								description: 'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code-examples/expressions/">expression</a>',
+							},
+							{
+								displayName: 'Field Value',
+								name: 'fieldValue',
+								type: 'string',
+								required: true,
+								default: '',
+							},
+						],
 					},
 				],
 			},
 		],
 	},
-	/* tableRecord:delete, update */
+	/* tableRecord:delete, get, update */
 	{
 		displayName: 'Record ID',
 		name: 'recordId',
@@ -118,7 +130,7 @@ export const tableRecordFields: INodeProperties[] = [
 		displayOptions: {
 			show: {
 				resource: ['tableRecord'],
-				operation: ['delete', 'update'],
+				operation: ['delete', 'get', 'update'],
 			},
 		},
 	},
@@ -141,6 +153,43 @@ export const tableRecordFields: INodeProperties[] = [
 				name: 'title',
 				type: 'string',
 				default: '',
+			},
+			{
+				displayName: 'Fields Attributes',
+				name: 'fieldsAttributes',
+				type: 'fixedCollection',
+				typeOptions: {
+					multipleValues: true,
+				},
+				placeholder: 'Add Attribute',
+				default: {},
+				options: [
+					{
+						name: 'attributes',
+						displayName: 'Attributes',
+						values: [
+							{
+								displayName: 'Field ID Name or ID',
+								name: 'fieldId',
+								type: 'options',
+								typeOptions: {
+									loadOptionsMethod: 'getTableFields',
+									loadOptionsDependsOn: ['recordId'],
+								},
+								required: true,
+								default: '',
+								description: 'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code-examples/expressions/">expression</a>',
+							},
+							{
+								displayName: 'Field Value',
+								name: 'fieldValue',
+								type: 'string',
+								required: true,
+								default: '',
+							},
+						],
+					},
+				],
 			},
 		],
 	},
