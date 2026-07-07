@@ -1,2 +1,8 @@
 dist
 node_modules
+_melhorias.md
+.env
+nodes/Pipefy/__tests__/
+jest.config.ts
+query.js
+.agents

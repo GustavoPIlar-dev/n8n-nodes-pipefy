@@ -1,6 +1,6 @@
 {
 	"name": "n8n-nodes-pipefy-plus",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"description": "",
 	"license": "MIT",
 	"homepage": "",
@@ -21,7 +21,8 @@
 		"dev": "n8n-node dev",
 		"lint": "n8n-node lint",
 		"lint:fix": "n8n-node lint --fix",
-		"release": "n8n-node release"
+		"release": "n8n-node release",
+		"test": "jest"
 	},
 	"files": [
 		"dist"
@@ -40,10 +41,16 @@
 	},
 	"devDependencies": {
 		"@n8n/node-cli": "*",
+		"@types/jest": "^30.0.0",
+		"axios": "^1.18.1",
+		"dotenv": "^17.4.2",
 		"eslint": "9.39.4",
+		"jest": "^30.4.2",
 		"n8n-workflow": "^2.16.0",
+		"nock": "^14.0.16",
 		"prettier": "3.8.3",
 		"release-it": "20.2.0",
+		"ts-jest": "^29.4.11",
 		"typescript": "5.9.3"
 	},
 	"peerDependencies": {

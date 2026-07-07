@@ -50,11 +50,15 @@ export const tableRecordOperations: INodeProperties[] = [
 export const tableRecordFields: INodeProperties[] = [
 	/* tableRecord:create, getAll, search */
 	{
-		displayName: 'Table ID',
+		displayName: 'Table Name or ID',
 		name: 'tableId',
-		type: 'string',
+		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'getTables',
+		},
 		required: true,
 		default: '',
+		description: 'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code-examples/expressions/">expression</a>',
 		displayOptions: {
 			show: {
 				resource: ['tableRecord'],
@@ -224,6 +228,28 @@ export const tableRecordFields: INodeProperties[] = [
 	},
 	/* tableRecord:search */
 	{
+		displayName: 'Search By',
+		name: 'searchBy',
+		type: 'options',
+		options: [
+			{
+				name: 'Title',
+				value: 'title',
+			},
+			{
+				name: 'Custom Field',
+				value: 'customField',
+			},
+		],
+		default: 'title',
+		displayOptions: {
+			show: {
+				resource: ['tableRecord'],
+				operation: ['search'],
+			},
+		},
+	},
+	{
 		displayName: 'Title',
 		name: 'title',
 		type: 'string',
@@ -233,6 +259,40 @@ export const tableRecordFields: INodeProperties[] = [
 			show: {
 				resource: ['tableRecord'],
 				operation: ['search'],
+				searchBy: ['title'],
+			},
+		},
+	},
+	{
+		displayName: 'Field ID Name or ID',
+		name: 'fieldId',
+		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'getTableFields',
+			loadOptionsDependsOn: ['tableId'],
+		},
+		required: true,
+		default: '',
+		description: 'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code-examples/expressions/">expression</a>',
+		displayOptions: {
+			show: {
+				resource: ['tableRecord'],
+				operation: ['search'],
+				searchBy: ['customField'],
+			},
+		},
+	},
+	{
+		displayName: 'Field Value',
+		name: 'fieldValue',
+		type: 'string',
+		required: true,
+		default: '',
+		displayOptions: {
+			show: {
+				resource: ['tableRecord'],
+				operation: ['search'],
+				searchBy: ['customField'],
 			},
 		},
 	},

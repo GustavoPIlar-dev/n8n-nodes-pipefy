@@ -11,6 +11,18 @@ import { pipeFields, pipeOperations } from './PipeDescription';
 import { tableRecordFields, tableRecordOperations } from './TableRecordDescription';
 import { pipefyApiRequest, pipefyApiRequestAllItems } from './GenericFunctions';
 
+export function parseFieldValue(val: any): any {
+	if (!val || val === '') return null;
+	if (typeof val === 'string' && val.trim().startsWith('[') && val.trim().endsWith(']')) {
+		try {
+			return JSON.parse(val);
+		} catch (e) {
+			return val;
+		}
+	}
+	return val;
+}
+
 export class Pipefy implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Pipefy',
@@ -156,6 +168,38 @@ export class Pipefy implements INodeType {
 				return returnData;
 			},
 
+			async getPipes(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				const query = `query n8nGetPipes { organizations { pipes { id name } } }`;
+				const responseData = await pipefyApiRequest.call(this, query, {});
+				const returnData: INodePropertyOptions[] = [];
+				if (responseData?.organizations) {
+					for (const org of responseData.organizations) {
+						if (org.pipes) {
+							for (const pipe of org.pipes) {
+								returnData.push({ name: pipe.name, value: pipe.id });
+							}
+						}
+					}
+				}
+				return returnData;
+			},
+
+			async getTables(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				const query = `query n8nGetTables { organizations { tables { edges { node { id name } } } } }`;
+				const responseData = await pipefyApiRequest.call(this, query, {});
+				const returnData: INodePropertyOptions[] = [];
+				if (responseData?.organizations) {
+					for (const org of responseData.organizations) {
+						if (org.tables?.edges) {
+							for (const edge of org.tables.edges) {
+								returnData.push({ name: edge.node.name, value: edge.node.id });
+							}
+						}
+					}
+				}
+				return returnData;
+			},
+
 			async getTableFields(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
 				let tableId: string | undefined;
 				try { tableId = this.getNodeParameter('tableId') as string; } catch (e) {}
@@ -255,7 +299,7 @@ export class Pipefy implements INodeType {
 						if (additionalFields.fieldsAttributes) {
 							input.fields_attributes = additionalFields.fieldsAttributes.attributes.map((attr: any) => ({
 								field_id: attr.fieldId,
-								field_value: (!attr.fieldValue || attr.fieldValue === '') ? null : attr.fieldValue,
+								field_value: parseFieldValue(attr.fieldValue),
 							}));
 						}
 
@@ -323,7 +367,8 @@ export class Pipefy implements INodeType {
 						// Updating fields must be done via updateCardField
 						if (updateFields.fieldsAttributes && updateFields.fieldsAttributes.attributes) {
 							for (const attr of updateFields.fieldsAttributes.attributes) {
-								const val = (!attr.fieldValue || attr.fieldValue === '') ? null : [attr.fieldValue];
+								let parsedValue = parseFieldValue(attr.fieldValue);
+								let val = (!parsedValue || parsedValue === '') ? null : (Array.isArray(parsedValue) ? parsedValue : [parsedValue]);
 								const fieldQuery = `mutation n8nUpdateCardField($cardId: ID!, $fieldId: ID!, $newValue: [UndefinedInput]) { updateCardField(input: { card_id: $cardId, field_id: $fieldId, new_value: $newValue }) { success } }`;
 								await pipefyApiRequest.call(this, fieldQuery, { 
 									cardId, 
@@ -373,7 +418,7 @@ export class Pipefy implements INodeType {
 						if (additionalFields.fieldsAttributes) {
 							input.fields_attributes = additionalFields.fieldsAttributes.attributes.map((attr: any) => ({
 								field_id: attr.fieldId,
-								field_value: (!attr.fieldValue || attr.fieldValue === '') ? null : attr.fieldValue,
+								field_value: parseFieldValue(attr.fieldValue),
 							}));
 						}
 						const query = `mutation n8nCreateTableRecord($input: CreateTableRecordInput!) { createTableRecord(input: $input) { table_record { id title } } }`;
@@ -413,11 +458,30 @@ export class Pipefy implements INodeType {
 
 					if (operation === 'search') {
 						const tableId = this.getNodeParameter('tableId', i) as string;
-						const title = this.getNodeParameter('title', i) as string;
-						const query = `query n8nSearchTableRecords($tableId: ID!, $search: TableRecordSearch) { table_records(table_id: $tableId, search: $search) { edges { node { id title } } } }`;
-						const responseData = await pipefyApiRequest.call(this, query, { tableId, search: { title } });
-						const nodes = responseData.table_records.edges.map((e: any) => e.node);
-						returnData.push(...nodes.map((x: any) => ({ json: x })));
+						const searchBy = this.getNodeParameter('searchBy', i, 'title') as string;
+						
+						if (searchBy === 'title') {
+							const title = this.getNodeParameter('title', i) as string;
+							const query = `query n8nSearchTableRecords($tableId: ID!, $search: TableRecordSearch) { table_records(table_id: $tableId, search: $search) { edges { node { id title url record_fields { name value array_value date_value datetime_value float_value report_value field { id } } table { id name } } } } }`;
+							const responseData = await pipefyApiRequest.call(this, query, { tableId, search: { title } });
+							const nodes = responseData.table_records.edges.map((e: any) => e.node);
+							returnData.push(...nodes.map((x: any) => ({ json: x })));
+						} else if (searchBy === 'customField') {
+							const fieldId = this.getNodeParameter('fieldId', i) as string;
+							const fieldValue = this.getNodeParameter('fieldValue', i) as string;
+							const fieldValueSafe = JSON.stringify(fieldValue);
+							const query = `query n8nFindRecords { findRecords(tableId: "${tableId}", search: { fieldId: "${fieldId}", fieldValue: ${fieldValueSafe} }) { edges { node { id title url fields { name value array_value date_value datetime_value float_value report_value field { id } } pipe { id name } } } } }`;
+							const responseData = await pipefyApiRequest.call(this, query, {});
+							const nodes = responseData.findRecords.edges.map((e: any) => {
+								const node = e.node;
+								node.record_fields = node.fields;
+								delete node.fields;
+								node.table = node.pipe;
+								delete node.pipe;
+								return node;
+							});
+							returnData.push(...nodes.map((x: any) => ({ json: x })));
+						}
 					}
 
 					if (operation === 'update') {
@@ -432,7 +496,8 @@ export class Pipefy implements INodeType {
 						const fieldsAttributes = updateFields.fieldsAttributes as any;
 						if (fieldsAttributes && fieldsAttributes.attributes) {
 							for (const attr of fieldsAttributes.attributes) {
-								const val = (!attr.fieldValue || attr.fieldValue === '') ? null : [attr.fieldValue];
+								let parsedValue = parseFieldValue(attr.fieldValue);
+								let val = (!parsedValue || parsedValue === '') ? null : (Array.isArray(parsedValue) ? parsedValue : [parsedValue]);
 								const fieldQuery = `mutation n8nSetTableRecordFieldValue($recordId: ID!, $fieldId: ID!, $newValue: [UndefinedInput]) { setTableRecordFieldValue(input: { table_record_id: $recordId, field_id: $fieldId, value: $newValue }) { table_record { id } } }`;
 								await pipefyApiRequest.call(this, fieldQuery, { 
 									recordId, 

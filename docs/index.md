@@ -42,14 +42,19 @@ Basta configurar as credenciais, colocar o ID do seu Pipe ou da sua Tabela, e at
   - Selecione `Table (Table Records)` para ouvir inserções e modificações exclusivas do banco de dados relacional.
 - **Eventos:** Item Created, Item Moved, Item Updated, Item Deleted.
 
+### Filtros Avançados (Novo! 🚀)
+Para economizar execuções no n8n e no Pipefy, você pode filtrar exatamente quando o webhook deve ser disparado:
+- **Fields ID Filter**: Ao usar o evento "Item Updated", você pode restringir o disparo do webhook **apenas** a alterações em campos específicos (seja em um Formulário Inicial ou em campos das Fases). 
+- **From Phase / To Phase Filter**: Ao usar o evento "Item Moved", você pode definir exatamente as Fases de Origem e/ou as Fases de Destino que devem disparar o gatilho, evitando automações indesejadas e loops.
+
 ### Testando Localmente
 Se você está usando o n8n na sua própria máquina (localhost), o Pipefy não conseguirá enviar dados para o seu webhook, pois `localhost` não existe na internet. 
-Para testes locais, use um sistema de túnel via terminal antes de iniciar o n8n. Recomendamos fortemente o Pinggy:
+Para testes locais, use um sistema de túnel via terminal antes de iniciar o n8n. Recomendamos fortemente o ngrok:
 ```bash
-ssh -p 443 -R0:localhost:5678 a.pinggy.io
+ngrok http 5678
 ```
 Com a URL pública gerada, rode o n8n informando sua base webhook:
 ```bash
-export WEBHOOK_URL="https://sua-url-gerada.pinggy.link"
-n8n
+export WEBHOOK_URL="https://sua-url-gerada.ngrok-free.dev"
+n8n start
 ```

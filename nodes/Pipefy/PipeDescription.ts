@@ -25,9 +25,12 @@ export const pipeOperations: INodeProperties[] = [
 
 export const pipeFields: INodeProperties[] = [
 	{
-		displayName: 'Pipe ID',
+		displayName: 'Pipe Name or ID',
 		name: 'pipeId',
-		type: 'string',
+		type: 'options',
+		typeOptions: {
+			loadOptionsMethod: 'getPipes',
+		},
 		required: true,
 		default: '',
 		displayOptions: {
